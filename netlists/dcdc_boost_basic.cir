@@ -1,0 +1,33 @@
+* Basic boost converter (parametric)
+
+.param Ton=6u
+.param Tper=20u
+.param Rload_val=50
+.param C_out=220u
+.param L_val=200u
+
+Vpv in 0 DC 30
+Rpvin in in2 0.1
+L1 in2 sw {L_val}
+
+S1 sw 0 ctrl 0 SWMOD
+.model SWMOD sw vt=2 ron=0.01 roff=1e6
+Vgate ctrl 0 PULSE(0 5 0 1n 1n {Ton} {Tper})
+
+D1 sw out DFAST
+.model DFAST D IS=1e-8 N=1 TT=50n CJO=50p RS=0.05
+
+Cout out 0 {C_out}
+Rload out 0 {Rload_val}
+
+.save V(in) V(out)
+.tran 100n 5m 0 100n
+
+.control
+run
+meas tran vout_avg AVG v(out) from=4.8m to=5m
+print vout_avg
+.endc
+
+.end
+

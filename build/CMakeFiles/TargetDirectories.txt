@@ -1,0 +1,3 @@
+/Users/euanthomson/Documents/packages/electronics/spice/build/CMakeFiles/spice_runner.dir
+/Users/euanthomson/Documents/packages/electronics/spice/build/CMakeFiles/edit_cache.dir
+/Users/euanthomson/Documents/packages/electronics/spice/build/CMakeFiles/rebuild_cache.dir
