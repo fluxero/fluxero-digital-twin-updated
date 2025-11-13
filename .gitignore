@@ -1,0 +1,7 @@
+build/*.csv
+build/*.pyc
+build/__pycache__/
+CMakeFiles/
+*.o
+*.log
+*.DS_Store

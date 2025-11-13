@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/opt/homebrew/include
+CXX_INCLUDES = -I/opt/homebrew/include -I/usr/local/include
 
 CXX_FLAGSarm64 = -std=gnu++17 -arch arm64
 

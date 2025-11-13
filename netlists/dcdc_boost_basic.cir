@@ -1,33 +1,53 @@
-* Basic boost converter (parametric)
+* Basic boost converter (parametric, with simple electrolyser + efficiency-friendly signals)
 
-.param Ton=6u
+* ---- Parameters ---------------------------------------------------
+.param Ton=12u
 .param Tper=20u
-.param Rload_val=50
 .param C_out=220u
 .param L_val=200u
+.param Vmin=55
+.param Iset=0.5
+.param Rs_el=0.5
+.param Cbus=470u
 
-Vpv in 0 DC 30
+* ---- Input PV (variable) ------------------------------------------
+Vpv in 0 PWL( 0m 25  1m 28  2m 30  3m 26  4m 29  5m 27 )
 Rpvin in in2 0.1
-L1 in2 sw {L_val}
 
+* ---- Power stage --------------------------------------------------
+L1 in2 sw {L_val}
 S1 sw 0 ctrl 0 SWMOD
 .model SWMOD sw vt=2 ron=0.01 roff=1e6
 Vgate ctrl 0 PULSE(0 5 0 1n 1n {Ton} {Tper})
-
 D1 sw out DFAST
 .model DFAST D IS=1e-8 N=1 TT=50n CJO=50p RS=0.05
-
 Cout out 0 {C_out}
-Rload out 0 {Rload_val}
 
-.save V(in) V(out)
+* ---- Electrolyser stub --------------------------------------------
+.func gate(x) { 0.5*(1 + tanh((x - Vmin)/5)) }
+Rely out nEL {Rs_el}
+BELY nEL 0 I = { Iset * gate(V(out)) }
+Cbus out 0 {Cbus}
+
+* ---- Analysis -----------------------------------------------------
+.save v(in) v(out) i(L1)
 .tran 100n 5m 0 100n
 
+* ---- Instantaneous power -----------------------------------------
+Bpin  pin_node  0  V = { -v(in)*i(Vpv) }
+Bout  pout_node 0  V = {  v(out)*i(Rely) }
+
+* ---- Measurements -------------------------------------------------
+.meas tran vout_avg  AVG v(out)  from=4.8m to=5m
+.meas tran vout_pp   PP  v(out)  from=4.8m to=5m
+.meas tran iL_rms    RMS i(L1)   from=4.8m to=5m
+
+* ---- Control ------------------------------------------------------
 .control
-run
-meas tran vout_avg AVG v(out) from=4.8m to=5m
-print vout_avg
+  run
+  echo === summary (last 0.2 ms) ===
+  print vout_avg vout_pp iL_rms
+  wrdata sim.csv time v(in) v(out) i(L1) pin_node pout_node
 .endc
 
 .end
-
