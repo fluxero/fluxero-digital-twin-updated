@@ -129,7 +129,9 @@ def main():
 
     # run the sim (the netlist .control will run + wrdata sim.csv + quit)
     cmd = [str(runner), str(netlist)] + overrides
-    subprocess.run(cmd)   # don't use check=True because ngspice quit can return non-zero
+    print("Running command:", " ".join(cmd))
+    subprocess.run(cmd, cwd=script_dir)   # ensure sim runs in build/
+
 
     if not sim_csv.exists():
         print(f"sim.csv not created at: {sim_csv}")
@@ -163,4 +165,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
