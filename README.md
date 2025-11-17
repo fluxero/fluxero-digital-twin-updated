@@ -1,78 +1,66 @@
 🚀 Fluxero Digital Twin Engine
-
-Second-Life Solar → Boost Converter → Electrolyser → Hydrogen KPIs (for Unity Visualisation)
+Second-Life Solar → Boost Converter → Electrolyser → KPIs for Unity Visualisation
 
 This repository contains the backend simulation engine for Fluxero’s digital twin.
-It models how second-life solar panels feed a DC/DC boost converter and a simple electrolyser load to estimate hydrogen production.
+It models how second-life solar feeds a boost converter and a simplified electrolyser, then outputs hydrogen KPIs into a CSV file (UNITY_DATA.csv).
 
-The simulation outputs clean, time-averaged KPIs into a CSV file (UNITY_DATA.csv) that an external Unity project reads to animate hydrogen tanks, gauges, and dashboards.
-
-⚠️ Important: This repo does not contain Unity.
-Unity is a separate front-end project that simply reads the CSV exported by this backend.
+⚠️ Unity is not included in this repo.
+Unity is a separate front-end that simply reads the CSV generated here.
 
 🌞 What This Engine Does
-
-Full simulation chain:
-
-PV Source → Boost Converter → DC Bus → Electrolyser Load → KPIs → (Unity Front-End)
+PV Source → Boost Converter → DC Bus → Electrolyser → KPIs → (Unity Front-End)
 
 It models:
 
-Second-life PV voltage variation (PWL source)
+Second-life PV voltage variation
 
-Switching boost converter (inductor, MOSFET, diode)
+Switching boost converter (MOSFET, diode, inductor)
 
 PWM control (Ton/Tper)
 
-Output capacitor + DC bus dynamics
+Output capacitor and DC bus behaviour
 
-Simple electrolyser load (threshold + current draw)
+Simplified electrolyser threshold + current draw
 
-Instantaneous power and efficiency
-
-Simplified hydrogen production estimate
+Power, efficiency, and hydrogen production estimation
 
 It outputs:
 
-sim.csv — raw ngspice waveforms
+sim.csv – raw ngspice waveforms
 
-UNITY_DATA.csv — clean KPIs for the Unity visualisation frontend
+UNITY_DATA.csv – clean KPIs for Unity
 
 📂 Repository Structure
 spice/
-│
 ├── netlists/
-│   └── dcdc_boost_basic.cir       # SPICE boost converter + electrolyser model
-│
+│   └── dcdc_boost_basic.cir
 ├── src/
-│   └── main.cpp                   # C++ runner using libngspice
-│
+│   └── main.cpp
 ├── build/
-│   ├── spice_runner               # Compiled ngspice runner
-│   ├── export_unity.py            # Converts sim.csv → UNITY_DATA.csv
-│   ├── USER_INPUT.csv             # User-defined simulation parameters
-│   └── UNITY_DATA.csv             # Output consumed by Unity (not stored in repo)
-│
-├── CMakeLists.txt                 # Build config for C++ runner
+│   ├── spice_runner
+│   ├── export_unity.py
+│   ├── USER_INPUT.csv
+│   └── UNITY_DATA.csv (auto-generated)
+├── CMakeLists.txt
 └── README.md
 
 🔧 Build Instructions (C++ Runner)
 
-From inside build:
+In the build directory:
 
 cd build
 cmake ..
 cmake --build .
 
 
-This produces the spice_runner executable.
+This builds the spice_runner executable.
 
-▶️ How to Run the Simulation
-1. Configure the input parameters
+▶️ Running a Simulation
+1. Edit user parameters
 
 Edit:
 
-nano USER_INPUT.csv
+build/USER_INPUT.csv
 
 
 Example:
@@ -85,102 +73,67 @@ Vmin_V,55
 Rs_el_ohm,0.5
 Cbus_uF,470
 
-2. Run the full pipeline
+2. Run the simulation:
 cd build
 python3 export_unity.py
 
-
-This will:
-
-run ngspice
-
-generate sim.csv
-
-compute KPIs
-
-output UNITY_DATA.csv
-
-3. View the output
+3. View the output:
 cat UNITY_DATA.csv
 
-🔄 Live Refresh Mode (for Unity Front-End)
+📊 UNITY_DATA.csv Format
 
-To continuously simulate and refresh KPIs (Unity polls the file):
-
-while true; do python3 export_unity.py; sleep 5; done
-
-
-Unity can then read the updated CSV every few seconds to animate live hydrogen production.
-
-📊 What Unity Reads (Format of UNITY_DATA.csv)
-
-Unity consumes a single row with:
+Unity reads a single row containing:
 
 Column	Meaning
-n_panels	Number of PV modules
-vout_avg_V	DC bus voltage (average)
+n_panels	Number of solar panels
+vout_avg_V	Average DC bus voltage
 vout_pp_V	Voltage ripple
-Pin_avg_W	Input power
+Pin_avg_W	Input power from PV
 Pout_avg_W	Power delivered to electrolyser
 eff_pct	Converter efficiency
-H2_kg_window	Hydrogen produced in last time window
-uptime_pct	% of time electrolyser was active
-sim_duration_s	Length of the simulation
+H2_kg_window	Hydrogen produced in the measured window
+uptime_pct	% time electrolyser was active
+sim_duration_s	Simulation duration
 
-Unity uses these values to update UI elements like:
+Unity uses these KPIs to animate tanks, gauges, and system behaviour.
 
-hydrogen tank fill
+🔄 Live Refresh Mode (for Unity)
 
-voltage/power gauges
+To auto-refresh the KPIs every 5 seconds:
 
-efficiency display
-
-hydrogen production rate
-
-Again: Unity is not included in this repo.
-It is a separate project that simply reads this CSV.
+while true; do python3 export_unity.py; sleep 5; done
 
 🧱 Project Status
 Completed:
 
-Fully working ngspice boost converter + electrolyser model
+Boost converter SPICE model
 
-C++ runner executing simulations automatically
+C++ ngspice runner
 
-Python script converting raw waveforms into clean KPIs
+Python KPI exporter
 
-Clean CSV pipeline for Unity integration
+CSV pipeline for Unity integration
 
-Suitable for MVP demos
+Next steps:
 
-Next Steps:
+Add irradiance/location inputs
 
-Add weather/irradiance input
+Use real panel datasheets
 
-Add realistic PV degradation curves
+Improve electrolyser I–V behaviour
 
-Upgrade electrolyser model to full I–V curve
+Add hydrogen storage + fuel cell modules
 
-Move from CSV polling → WebSockets
+Upgrade CSV → WebSocket live streaming
 
-Add hydrogen storage and fuel cell modules
-
-🧪 Requirements
+Requirements
 
 macOS/Linux
 
-ngspice with libngspice
+ngspice + libngspice
 
 C++17 compiler
 
 Python 3 (pandas, numpy)
 
-Unity (external, not included here)
-
-🤝 Contributing
-
-Contributions improving PV models, electrolyser behaviour, or Unity integration are welcome.
-
-📄 License
-
-Add MIT, Apache 2.0, or any license you prefer.
+Unity (separate front-end project)
